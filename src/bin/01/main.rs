@@ -15,7 +15,8 @@ fn solve(input: &str, size_of_grouping: usize) -> u64 {
 }
 
 fn parse_numbers(input: &str) -> Vec<u64> {
-    input.split("\n")
+    input
+        .split('\n')
         .map(|entry| entry.trim())
         .filter(|entry| !entry.is_empty())
         .map(|raw| raw.parse())
@@ -25,15 +26,16 @@ fn parse_numbers(input: &str) -> Vec<u64> {
 
 fn find_summands(numbers: Vec<u64>, size_of_grouping: usize) -> Vec<u64> {
     let mut combinations = numbers.into_iter().combinations(size_of_grouping);
-    combinations.find(|elements| elements.iter().sum::<u64>() == 2020).unwrap()
+    combinations
+        .find(|elements| elements.iter().sum::<u64>() == 2020)
+        .unwrap()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const DEMO_INPUT: &str =
-    "1721
+    const DEMO_INPUT: &str = "1721
     979
     366
     299
