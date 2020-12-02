@@ -1,17 +1,24 @@
 use lazy_static::lazy_static;
 
 use regex::Regex;
-use std::ops::RangeInclusive;
 
 fn main() {
     let input = include_str!("./input.txt");
-    let solution = solve(input);
-    println!("The first solution is:\n{}", solution);
+    let first_solution = solve_first(input);
+    println!("The first solution is:\n{}", first_solution);
+    let second_solution = solve_second(input);
+    println!("The second solution is:\n{}", second_solution);
 }
 
-fn solve(input: &str) -> usize {
+fn solve_first(input: &str) -> usize {
     let entries = parse_input(input);
-    let correct_entries = entries.into_iter().filter(valid_entry);
+    let correct_entries = entries.iter().filter(|entry| valid_entry_range(*entry));
+    correct_entries.count()
+}
+
+fn solve_second(input: &str) -> usize {
+    let entries = parse_input(input);
+    let correct_entries = entries.iter().filter(|entry| valid_entry_positions(*entry));
     correct_entries.count()
 }
 
@@ -26,19 +33,19 @@ fn parse_input(input: &str) -> Vec<Entry> {
 
 lazy_static! {
     static ref REGEX: Regex = Regex::new(
-        r"(?P<lower_bound>\d+)-(?P<upper_bound>\d+) (?P<letter>[[:alpha:]]): (?P<password>[[:alpha:]]+)"
+        r"(?P<first_number>\d+)-(?P<second_number>\d+) (?P<letter>[[:alpha:]]): (?P<password>[[:alpha:]]+)"
     )
     .unwrap();
 }
 
 fn parse_line(line: &str) -> Option<Entry> {
     REGEX.captures(line).map(|captures| {
-        let lower_bound = captures
-            .name("lower_bound")
+        let first_number = captures
+            .name("first_number")
             .and_then(|raw| raw.as_str().parse::<usize>().ok())
             .unwrap();
-        let upper_bound = captures
-            .name("upper_bound")
+        let second_number = captures
+            .name("second_number")
             .and_then(|raw| raw.as_str().parse::<usize>().ok())
             .unwrap();
         let character = captures
@@ -51,7 +58,8 @@ fn parse_line(line: &str) -> Option<Entry> {
             .unwrap();
 
         Entry {
-            range: lower_bound..=upper_bound,
+            first_number,
+            second_number,
             letter: character,
             password,
         }
@@ -60,19 +68,36 @@ fn parse_line(line: &str) -> Option<Entry> {
 
 #[derive(Debug)]
 struct Entry {
-    range: RangeInclusive<usize>,
+    first_number: usize,
+    second_number: usize,
     letter: char,
     password: String,
 }
 
-fn valid_entry(entry: &Entry) -> bool {
+fn valid_entry_range(entry: &Entry) -> bool {
     let number_of_letters = entry
         .password
         .chars()
         .filter(|c| c == &entry.letter)
         .count();
+    let range = entry.first_number..=entry.second_number;
 
-    entry.range.contains(&number_of_letters)
+    range.contains(&number_of_letters)
+}
+
+fn valid_entry_positions(entry: &Entry) -> bool {
+    let first_letter = entry.password.chars().nth(entry.first_number - 1).unwrap(); // 0-indexed
+    let second_letter = entry.password.chars().nth(entry.second_number - 1).unwrap(); // 0-indexed
+
+    let mut matches = 0;
+    if first_letter == entry.letter {
+        matches += 1;
+    }
+    if second_letter == entry.letter {
+        matches += 1;
+    }
+
+    matches == 1
 }
 
 #[cfg(test)]
@@ -85,7 +110,13 @@ mod tests {
 
     #[test]
     fn first_demo_solution() {
-        let solution = solve(DEMO_INPUT);
+        let solution = solve_first(DEMO_INPUT);
         assert_eq!(solution, 2);
+    }
+
+    #[test]
+    fn second_demo_solution() {
+        let solution = solve_second(DEMO_INPUT);
+        assert_eq!(solution, 1);
     }
 }
