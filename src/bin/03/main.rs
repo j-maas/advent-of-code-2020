@@ -10,7 +10,7 @@ fn main() {
         .map(|(right, down)| solve(input, right, down))
         .product();
 
-    println!("The second seolution is:\n{}", second_solution);
+    println!("The second solution is:\n{}", second_solution);
 }
 
 fn solve(input: &str, right: usize, down: usize) -> usize {
